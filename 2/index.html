@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Comdex is a lightweight HTML editor with a live preview.">
+<meta name="theme-color" content="#4d43fe">
+<title>Comdex: HTML editor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234d43fe'/%3E%3Cpath d='m13 11-5 5 5 5m6-10 5 5-5 5' fill='none' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@600;700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Design tokens from super_money.css */
+:root{
+--color-primary:#4d43fe;--color-primary-50:#d7ecff;--color-primary-100:#c9dfff;--color-primary-200:#b5cbff;--color-primary-300:#9aadff;--color-primary-500:#5f60ff;--color-primary-600:#4d43fe;--color-primary-700:#3d33d3;
+--color-bg:#fff;--color-bg-1:#1b1b1b;--color-bg-3:#e0eaff;--color-neutral-500:#eef4fe;--color-neutral-600:#6c6c6c;
+--color-text-1:#1b1b1b;--color-text-3:#adacbe;--color-text-4:#eaecf0;
+--radius-md:10px;--radius-lg:16px;--radius-full:9999px;
+--shadow-xs:rgba(74,58,255,.1) 0 6px 16px 0;--shadow-sm:rgba(41,30,255,.45) 0 8px 28px 0;
+--font-sans:'Anek Latin','AnekLatin',sans-serif;--font-font-1:'Figtree',system-ui,sans-serif;
+--mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;--sp:50;--ease:cubic-bezier(.2,.7,.2,1)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:flex;flex-direction:column;background:var(--color-neutral-500);color:var(--color-text-1);font:14px/1.4 var(--font-font-1)}
+:focus-visible{outline:2px solid var(--color-primary-500);outline-offset:2px}
+button,select,input{font:inherit;color:inherit}
+.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+header{position:relative;background:#fff;border-bottom:1px solid var(--color-text-4)}
+.brand{display:flex;align-items:center;gap:9px;font:700 21px var(--font-sans);letter-spacing:-.01em}
+.logo{width:28px;height:28px}
+.grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border:1px solid var(--color-text-4);border-radius:var(--radius-full);background:#fff;font-weight:500;white-space:nowrap;cursor:pointer;transition:transform .15s var(--ease),box-shadow .2s,background .2s,border-color .2s,color .2s}
+.btn:hover{border-color:var(--color-primary-300);background:var(--color-neutral-500)}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.45;pointer-events:none}
+.btn[aria-pressed=true]{background:var(--color-bg-3);border-color:var(--color-primary-300);color:var(--color-primary-700)}
+.btn[aria-pressed=true]:hover{background:var(--color-primary-50)}
+.pri{background:var(--color-primary);border-color:var(--color-primary);color:#fff;box-shadow:var(--shadow-xs)}
+.pri:hover{background:var(--color-primary-700);border-color:var(--color-primary-700);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
+select,input[type=text]{height:34px;padding:0 10px;border:1px solid var(--color-text-4);border-radius:var(--radius-md);background:#fff}
+input[type=text]{width:170px;min-width:0}
+input[type=text]:focus,select:focus{border-color:var(--color-primary-500)}
+#prog{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;pointer-events:none}
+#prog i{display:block;width:35%;height:100%;background:var(--color-primary);border-radius:2px;opacity:0}
+#prog.on i{opacity:1;animation:sweep .8s linear infinite}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+main{flex:1;display:flex;min-height:0;padding:10px}
+main.v{flex-direction:column}
+#edw,#pvw{position:relative;min-width:0;min-height:0;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-xs);animation:open .6s var(--ease) backwards}
+#edw{flex:var(--sp) 1 0%}
+#pvw{flex:calc(100 - var(--sp)) 1 0%;background:#fff;animation-delay:.08s}
+@keyframes open{from{clip-path:inset(0 0 100% 0 round 16px);opacity:0}to{clip-path:inset(0 0 0 0 round 16px);opacity:1}}
+textarea,iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+textarea{padding:18px;outline:0;resize:none;background:#fff;color:var(--color-text-1);font:14px/1.65 var(--mono);tab-size:2;transition:background .3s,color .3s}
+.dark textarea{background:var(--color-bg-1);color:var(--color-text-4);caret-color:var(--color-primary-300);color-scheme:dark}
+textarea::selection{background:var(--color-primary-200)}
+.dark textarea::selection{background:var(--color-primary-600);color:#fff}
+iframe{background:#fff}
+#gut{flex:none;width:14px;display:grid;place-items:center;cursor:col-resize;touch-action:none}
+#gut::after{content:"";width:4px;height:40px;border-radius:9px;background:var(--color-primary-200);transition:width .2s var(--ease),height .2s var(--ease),background .2s,box-shadow .2s}
+#gut:hover::after,#gut:focus-visible::after,.drag #gut::after{height:64px;background:var(--color-primary);box-shadow:var(--shadow-sm)}
+main.v #gut{width:auto;height:14px;cursor:row-resize}
+main.v #gut::after{width:40px;height:4px}
+main.v #gut:hover::after,main.v #gut:focus-visible::after,main.v.drag #gut::after{width:64px;height:4px}
+.drag iframe,.drag textarea{pointer-events:none}
+footer{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;padding:7px 14px;background:#fff;border-top:1px solid var(--color-text-4);font-size:12px;color:var(--color-neutral-600)}
+footer.off{display:none}
+footer b{font:400 12px var(--mono);color:var(--color-text-1)}
+footer a{color:inherit}
+address{margin:0;font-style:normal}
+.share{display:flex;align-items:center;gap:2px;margin-left:auto}
+.share span{margin-right:4px}
+.share a,.share button{display:grid;place-items:center;width:28px;height:28px;border:0;border-radius:50%;background:none;color:inherit;cursor:pointer;transition:background .2s,color .2s,transform .15s}
+.share a:hover,.share button:hover{background:var(--color-bg-3);color:var(--color-primary-700);transform:translateY(-1px)}
+#toast{position:fixed;left:50%;bottom:60px;z-index:9;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-full);background:var(--color-bg-1);color:#fff;box-shadow:var(--shadow-sm);opacity:0;transform:translate(-50%,16px);pointer-events:none;transition:opacity .25s,transform .35s var(--ease)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast .i{color:var(--color-primary-300)}
+@media(prefers-reduced-motion:reduce){*,::after{animation:none!important;transition:none!important}}
+.row{display:flex;align-items:center;gap:8px;padding:10px 14px}
+.ib{display:grid;place-items:center;width:30px;height:30px;flex:none;border:0;border-radius:8px;background:none;color:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,transform .15s}
+.ib:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
+.ib:active{transform:scale(.92)}
+.ib[aria-pressed=true]{background:var(--color-primary);color:#fff}
+.seg{display:flex;gap:2px;padding:2px;border-radius:10px;background:var(--color-neutral-500)}
+.seg .ib{width:30px;height:26px;color:var(--color-neutral-600)}
+.seg .ib[aria-pressed=true]{background:#fff;color:var(--color-primary-700);box-shadow:var(--shadow-xs)}
+.seg.m{display:none}
+.seg.m .ib{width:auto;height:30px;padding:0 14px}
+#edw,#pvw{display:flex;flex-direction:column}
+.ph{display:flex;align-items:center;gap:2px;flex:none;height:42px;padding:0 8px 0 12px;background:#fff;border-bottom:1px solid var(--color-text-4);transition:background .3s,color .3s,border-color .3s}
+.dark .ph{background:#232323;border-color:#333;color:var(--color-text-4)}
+.fn{display:flex;align-items:center;gap:7px;min-width:0;margin-right:auto;font-weight:500}
+.fn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fn .i{color:var(--color-primary-500)}
+.ph select{height:28px;padding:0 6px;border:0;border-radius:8px;background:var(--color-neutral-500);font-size:12px}
+.pb{position:relative;flex:1;min-height:0}
+iframe{inset:0 auto 0 50%;width:var(--dw,100%);max-width:100%;transform:translateX(-50%);transition:width .35s var(--ease),border-radius .3s,box-shadow .3s}
+.pb.dev{background:var(--color-bg-3)}
+.pb.dev iframe{top:12px;bottom:12px;height:auto;border-radius:12px;box-shadow:var(--shadow-xs)}
+#fbar{position:absolute;top:10px;right:14px;z-index:3;display:grid;gap:8px;width:min(380px,calc(100% - 28px));padding:10px;border-radius:14px;background:#fff;color:var(--color-text-1);box-shadow:var(--shadow-sm);opacity:0;pointer-events:none;transform:translateY(-8px) scale(.98);transform-origin:top right;transition:opacity .2s,transform .3s var(--ease)}
+#fbar.open{opacity:1;pointer-events:auto;transform:none}
+.fr{display:flex;align-items:center;gap:6px}
+.fr input{flex:1;width:auto;height:30px}
+.fr .btn{height:30px;padding:0 10px;font-size:12px}
+#fb{font-size:12px;color:var(--color-neutral-600)}
+#fb:empty{display:none}
+@media(max-width:760px){.lbl,.bt,[data-t=vertical]{display:none}.row .btn{padding:0 10px}.seg.m{display:flex}.row .grow{display:none}.row .seg{margin-left:auto}#gut{display:none}main{padding:8px}#edw,#pvw{flex:1 1 0%}main[data-view=code] #pvw,main[data-view=prev] #edw{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-logo" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#4d43fe"/><path d="m13 11-5 5 5 5m6-10 5 5-5 5" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></symbol>
+<symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"/></symbol>
+<symbol id="i-open" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5"/></symbol>
+<symbol id="i-sel" viewBox="0 0 24 24"><path d="M5 3a2 2 0 0 0-2 2m16-2a2 2 0 0 1 2 2m0 14a2 2 0 0 1-2 2M5 21a2 2 0 0 1-2-2M9 3h1m4 0h1M9 21h1m4 0h1M3 9v1m18-1v1M3 14v1m18-1v1M8 12h8"/></symbol>
+<symbol id="i-rows" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
+<symbol id="i-spell" viewBox="0 0 24 24"><path d="m4 17 4-10 4 10M5.5 13.5h5M14 15l2.5 2.5L21 11"/></symbol>
+<symbol id="i-repl" viewBox="0 0 24 24"><path d="M4 7h12l-3-3m3 3-3 3M20 17H8l3-3m-3 3 3 3"/></symbol>
+<symbol id="i-bar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 15h18"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zM14 3v5h5"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8L17.8 3Zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5Z"/></symbol>
+<symbol id="i-fb" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.8c0-.9.3-1.5 1.6-1.5h1.7V3.4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.2H7.3V13h2.8v8h3.4Z"/></symbol>
+<symbol id="i-in" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M6.94 8.5H3.56V20h3.38V8.5ZM5.25 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM20.44 13.4c0-3.1-1.65-4.9-4.3-4.9-1.2 0-2.1.5-2.7 1.4V8.5h-3.3V20h3.4v-6c0-1.6.7-2.5 2-2.5s1.7 1 1.7 2.4V20h3.4v-6.6Z"/></symbol>
+</svg>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+<symbol id="i-tablet" viewBox="0 0 24 24"><rect x="4.5" y="2.5" width="15" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+<symbol id="i-desk" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8m-4-4v4"/></symbol>
+<symbol id="i-find" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+</svg>
+<header>
+  <div class="row">
+    <div class="brand"><svg class="logo" aria-hidden="true"><use href="#i-logo"/></svg><span class="bt">Comdex</span></div>
+    <div class="grow"></div>
+    <div class="seg m" role="group" aria-label="Show">
+      <button class="ib" data-v="code" aria-pressed="true">Code</button>
+      <button class="ib" data-v="prev" aria-pressed="false">Preview</button>
+    </div>
+    <button class="btn" id="op" title="Open an HTML file" aria-label="Open file"><svg class="i"><use href="#i-open"/></svg><span class="lbl">Open</span></button>
+    <button class="btn" id="dl" title="Download (Ctrl+S)" aria-label="Download"><svg class="i"><use href="#i-dl"/></svg><span class="lbl">Download</span></button>
+    <button class="btn" data-t="vertical" aria-pressed="false" title="Stack editor above preview" aria-label="Stack editor above preview"><svg class="i"><use href="#i-rows"/></svg></button>
+    <button class="btn pri" id="run" title="Run (Ctrl+Enter)" aria-label="Run"><svg class="i"><use href="#i-play"/></svg><span class="lbl">Run</span></button>
+    <input type="file" id="fi" accept="text/html,.html,.htm" hidden>
+  </div>
+  <div id="prog"><i></i></div>
+</header>
+
+<main>
+  <div id="edw">
+    <div class="ph">
+      <div class="fn" title="Current file"><svg class="i"><use href="#i-file"/></svg><span id="fnt"></span></div>
+      <button class="ib" id="fm" title="Smaller text" aria-label="Smaller text">A&minus;</button>
+      <button class="ib" id="fp" title="Larger text" aria-label="Larger text">A+</button>
+      <button class="ib" data-t="spell" aria-pressed="false" title="Spellcheck" aria-label="Spellcheck"><svg class="i"><use href="#i-spell"/></svg></button>
+      <button class="ib" data-t="dark" aria-pressed="false" title="Dark editor" aria-label="Dark editor"><svg class="i"><use href="#i-moon"/></svg></button>
+      <button class="ib" data-t="find" aria-pressed="false" title="Find and replace (Ctrl+F)" aria-label="Find and replace"><svg class="i"><use href="#i-find"/></svg></button>
+      <button class="ib" id="sel" title="Select all" aria-label="Select all"><svg class="i"><use href="#i-sel"/></svg></button>
+      <button class="ib" id="rs" title="Reset to template" aria-label="Reset to template"><svg class="i"><use href="#i-reset"/></svg></button>
+    </div>
+    <div class="pb">
+      <textarea id="ed" aria-label="HTML editor" spellcheck="false"><!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML Document Template</title>
+  <style>
+    body { display: grid; place-items: center; min-height: 100vh; margin: 0; }
+    p { font: 600 2rem system-ui, sans-serif; color: #4d43fe; }
+  </style>
+</head>
+<body>
+  <p>Hello, world!</p>
+  <script>
+    console.log(document.querySelector('p').textContent);
+  </script>
+</body>
+</html></textarea>
+      <div id="fbar" role="search" aria-label="Find and replace">
+        <div class="fr"><input type="text" id="q" aria-label="Find"><button class="btn" data-t="case" aria-pressed="false" title="Match case" aria-label="Match case">Aa</button><button class="btn" data-t="word" aria-pressed="false" title="Whole word" aria-label="Whole word">ab</button><button class="btn" data-t="regex" aria-pressed="false" title="Regular expression" aria-label="Regular expression">.*</button></div>
+        <div class="fr"><input type="text" id="r" placeholder="Replace with" aria-label="Replace with"><button class="btn" id="ra">Replace all</button><button class="btn" id="undo" disabled title="Undo replace" aria-label="Undo replace"><svg class="i"><use href="#i-undo"/></svg></button></div>
+        <output id="fb" aria-live="polite"></output>
+      </div>
+    </div>
+  </div>
+  <div id="gut" role="separator" aria-orientation="vertical" aria-label="Resize editor and preview" tabindex="0"></div>
+  <div id="pvw">
+    <div class="ph">
+      <div class="seg" role="group" aria-label="Preview width">
+        <button class="ib" data-d="100%" aria-pressed="true" title="Full width" aria-label="Full width"><svg class="i"><use href="#i-desk"/></svg></button>
+        <button class="ib" data-d="768px" aria-pressed="false" title="Tablet, 768 px" aria-label="Tablet width"><svg class="i"><use href="#i-tablet"/></svg></button>
+        <button class="ib" data-d="375px" aria-pressed="false" title="Phone, 375 px" aria-label="Phone width"><svg class="i"><use href="#i-phone"/></svg></button>
+      </div>
+      <span class="grow"></span>
+      <select id="ps" aria-label="When the preview refreshes" title="When the preview refreshes"><option value="Instant">Live</option><option value="500">Delay 0.5 s</option><option value="1000">Delay 1 s</option><option value="1500">Delay 1.5 s</option><option value="2000">Delay 2 s</option><option value="Manual">Manual</option></select>
+      <button class="ib" id="tab" title="Open preview in a new tab" aria-label="Open preview in a new tab"><svg class="i"><use href="#i-ext"/></svg></button>
+    </div>
+    <div class="pb" id="pb"><iframe id="pv" title="Live preview" sandbox="allow-scripts allow-modals allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe></div>
+  </div>
+</main>
+
+<footer>
+  <span id="pos"></span>
+  <span><b id="cc"></b> <span id="cl"></span></span>
+  <span><b id="bc"></b> <span id="bl"></span></span>
+  <div class="share"><span>Share</span>
+    <a data-s="x" target="_blank" rel="noopener" aria-label="Share on X"><svg class="i"><use href="#i-x"/></svg></a>
+    <a data-s="fb" target="_blank" rel="noopener" aria-label="Share on Facebook"><svg class="i"><use href="#i-fb"/></svg></a>
+    <a data-s="in" target="_blank" rel="noopener" aria-label="Share on LinkedIn"><svg class="i"><use href="#i-in"/></svg></a>
+    <a data-s="mail" target="_blank" rel="noopener" aria-label="Share by email"><svg class="i"><use href="#i-mail"/></svg></a>
+    <button id="cp" aria-label="Copy link"><svg class="i"><use href="#i-link"/></svg></button>
+  </div>
+  <address><a href="https://Instagram.com/tubesoftyt.ig">Feedback</a></address>
+  <address>Created by <a href="https://tzproapks.blogspot.com/" rel="author">tzproapks</a></address>
+</footer>
+
+<div id="toast" role="status"><svg class="i"><use href="#i-check"/></svg><span id="tm"></span></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const ed=$('#ed'),pv=$('#pv'),main=$('main'),prog=$('#prog'),fb=$('#fb'),undo=$('#undo'),fi=$('#fi'),ps=$('#ps'),g=$('#gut');
+const mq=matchMedia('(max-width:760px)'),nf=new Intl.NumberFormat();
+const S={dark:1,vertical:0,spell:0,find:0,status:1,case:0,word:0,regex:0,font:14,delay:'500',split:50,name:'template.html',view:'code',dev:'100%',q:'',r:'',ed:ed.defaultValue};
+try{Object.assign(S,JSON.parse(localStorage.getItem('comdex')))}catch{}
+let timer,pt,tt,st,prev=null,free=0;
+const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+const save=()=>{S.ed=ed.value;S.q=$('#q').value;S.r=$('#r').value;try{localStorage.setItem('comdex',JSON.stringify(S))}catch{}};
+
+function toast(m){const t=$('#toast');$('#tm').textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200)}
+function sync(){
+  $$('[data-t]').forEach(b=>b.setAttribute('aria-pressed',!!S[b.dataset.t]));
+  $$('[data-v]').forEach(b=>b.setAttribute('aria-pressed',S.view===b.dataset.v));
+  $$('[data-d]').forEach(b=>b.setAttribute('aria-pressed',S.dev===b.dataset.d));
+  $('#edw').classList.toggle('dark',!!S.dark);
+  main.classList.toggle('v',!!S.vertical||mq.matches);
+  main.dataset.view=S.view;
+  ed.spellcheck=!!S.spell;
+  $('#fbar').classList.toggle('open',!!S.find);$('#fbar').inert=!S.find;
+  $('#q').placeholder=S.regex?'Pattern or /pattern/flags':'Find';
+  $('#pb').style.setProperty('--dw',S.dev);$('#pb').classList.toggle('dev',S.dev!=='100%');
+  ed.style.fontSize=S.font+'px';
+  main.style.setProperty('--sp',S.split);
+  $('#fnt').textContent=S.name;
+}
+function run(){prog.classList.add('on');clearTimeout(pt);pt=setTimeout(()=>prog.classList.remove('on'),500);pv.srcdoc=ed.value}
+function queue(){const d=S.delay;clearTimeout(timer);if(d==='Instant')run();else if(d!=='Manual')timer=setTimeout(run,+d)}
+function stats(){
+  const v=ed.value,b=new Blob([v]).size;
+  $('#cc').textContent=nf.format(v.length);$('#cl').textContent=v.length===1?'character':'characters';
+  $('#bc').textContent=nf.format(b);$('#bl').textContent=b===1?'byte':'bytes';
+}
+function pos(){const l=ed.value.slice(0,ed.selectionStart).split('\n');$('#pos').textContent=`Ln ${l.length}, Col ${l.at(-1).length+1}`}
+function after(){prev=null;undo.disabled=true;fb.value='';sync();run();stats();pos();save()}
+
+/* Toggles */
+$$('[data-t]').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.t;S[k]=+!S[k];
+  if(k==='regex'&&S.regex)S.case=S.word=0;
+  if((k==='case'||k==='word')&&S[k])S.regex=0;
+  fb.value='';sync();save();
+  if(k==='find'&&S.find)$('#q').focus();
+});
+ps.onchange=()=>{S.delay=ps.value;save()};
+mq.addEventListener('change',sync);
+
+/* Editor */
+ed.oninput=()=>{prev=null;undo.disabled=true;fb.value='';queue();stats();pos();clearTimeout(st);st=setTimeout(save,800)};
+['keyup','click','focus'].forEach(e=>ed.addEventListener(e,pos));
+ed.onkeydown=e=>{
+  const m=e.ctrlKey||e.metaKey;
+  if(m&&e.key==='Enter'){e.preventDefault();run()}
+  else if(m&&e.key==='s'){e.preventDefault();download()}
+  else if(m&&e.key==='f'){e.preventDefault();S.find=1;sync();$('#q').focus();$('#q').select()}
+  else if(e.key==='Escape')free=1;
+  else if(e.key==='Tab'&&!free&&!e.shiftKey){e.preventDefault();document.execCommand('insertText',false,'  ')}
+  else free=0;
+};
+$('#fbar').onkeydown=e=>{if(e.key==='Escape'){S.find=0;sync();save();ed.focus()}};
+
+/* Files */
+const blobURL=()=>URL.createObjectURL(new Blob([ed.value],{type:'text/html;charset=utf-8'}));
+function download(){const a=document.createElement('a');a.href=blobURL();a.download=S.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e3);toast('Downloaded '+S.name)}
+$('#dl').onclick=download;
+$('#run').onclick=()=>{if(mq.matches&&S.view==='code'){S.view='prev';sync();save()}run()};
+$('#tab').onclick=()=>{const u=blobURL();open(u,'_blank');setTimeout(()=>URL.revokeObjectURL(u),6e4)};
+$('#op').onclick=()=>fi.click();
+fi.onchange=async()=>{const f=fi.files[0];if(!f)return;S.name=f.name;ed.value=await f.text();after();toast('Opened '+f.name)};
+$('#sel').onclick=()=>{ed.focus();ed.select()};
+$('#rs').onclick=()=>{
+  if(ed.value!==ed.defaultValue&&!confirm('Reset the editor to the default template? Unsaved changes will be lost.'))return;
+  fi.value='';S.name='template.html';ed.value=ed.defaultValue;after();toast('Editor reset');
+};
+
+/* Find and replace */
+$('#ra').onclick=()=>{
+  const f=$('#q').value,r=$('#r').value,v=ed.value;
+  if(!f){fb.value='Enter text to find';return}
+  let p,fl='g';
+  if(S.regex){const m=f.match(/^\/(.*)\/(.*)$/);if(m){p=m[1];fl=m[2].includes('g')?m[2]:m[2]+'g'}else p=f}
+  else{p=esc(f);if(S.word){p=`(?<![\\p{L}\\p{N}_])${p}(?![\\p{L}\\p{N}_])`;fl+='u'}if(!S.case)fl+='i'}
+  let re;try{re=new RegExp(p,fl)}catch(e){fb.value=e.message;return}
+  const n=(v.match(re)||[]).length;
+  if(!n){fb.value='No matches found';return}
+  prev=v;
+  const sub=S.regex?r.replace(/\\[nrt\\]/g,m=>({'\\n':'\n','\\r':'\r','\\t':'\t','\\\\':'\\'}[m])):null;
+  ed.value=v.replace(re,sub===null?()=>r:sub);
+  fb.value=`${nf.format(n)} ${n===1?'replacement':'replacements'} made`;
+  undo.disabled=false;queue();stats();pos();
+};
+undo.onclick=()=>{ed.value=prev;prev=null;undo.disabled=true;fb.value='Replacement undone';queue();stats();pos()};
+[$('#q'),$('#r')].forEach(i=>i.oninput=()=>fb.value='');
+
+/* Splitter */
+const setSp=v=>{S.split=Math.min(85,Math.max(15,v));main.style.setProperty('--sp',S.split)};
+g.onpointerdown=e=>{
+  g.setPointerCapture(e.pointerId);main.classList.add('drag');
+  g.onpointermove=ev=>{
+    const r=main.getBoundingClientRect(),v=main.classList.contains('v');
+    setSp(((v?ev.clientY-r.top:ev.clientX-r.left)-17)/((v?r.height:r.width)-34)*100);
+  };
+  g.onpointerup=g.onpointercancel=()=>{g.onpointermove=null;main.classList.remove('drag');save()};
+};
+g.onkeydown=e=>{const d={ArrowLeft:-2,ArrowUp:-2,ArrowRight:2,ArrowDown:2}[e.key];if(d){e.preventDefault();setSp(S.split+d);save()}};
+
+/* Share */
+const u=encodeURIComponent(location.href),ti=encodeURIComponent('Comdex: HTML editor with live preview');
+const L={x:`https://x.com/intent/post?text=${ti}&url=${u}`,fb:`https://www.facebook.com/sharer.php?u=${u}`,in:`https://www.linkedin.com/feed/?shareActive=true&shareUrl=${u}`,mail:`mailto:?subject=${ti}&body=${u}`};
+$$('[data-s]').forEach(a=>a.href=L[a.dataset.s]);
+$('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);toast('Link copied')}catch{toast('Copy failed. Copy the link from the address bar.')}};
+
+/* Panes */
+$$('[data-v]').forEach(b=>b.onclick=()=>{S.view=b.dataset.v;sync();save();if(S.view==='prev')run()});
+$$('[data-d]').forEach(b=>b.onclick=()=>{S.dev=b.dataset.d;sync();save()});
+[['#fm',-1],['#fp',1]].forEach(([k,d])=>$(k).onclick=()=>{S.font=Math.min(28,Math.max(11,S.font+d));sync();save();toast('Font size '+S.font)});
+
+/* Init */
+ed.value=S.ed;$('#q').value=S.q;$('#r').value=S.r;ps.value=S.delay;
+sync();run();stats();pos();
+addEventListener('pagehide',save);
+document.addEventListener('visibilitychange',()=>document.hidden&&save());
+</script>
+</body>
+</html>
